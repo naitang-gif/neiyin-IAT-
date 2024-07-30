@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My experiment</title>
+    <script src="https://unpkg.com/jspsych@latest"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-html-keyboard-response@latest"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-image-keyboard-response@latest"></script>
+    <script src="https://unpkg.com/@jspsych/plugin-preload@latest"></script>
+    <link href="https://unpkg.com/jspsych@latest/css/jspsych.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body></body>
+  <script>
+    var jsPsych = initJsPsych({
+        on_finish: function() {
+          jsPsych.data.displayData();
+        }
+      });
+
+      /* create timeline */
+      var timeline = [];
+
+      /* define welcome message trial */
+      var welcome = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: "Welcome to the IAT Experiment. Press any key to begin."
+      };
+      timeline.push(welcome);
+
+      /* define instructions trial */
+      var instructions = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: `
+          <p>You will be shown words representing different emotions. Your task is to categorize the words as quickly and accurately as possible.</p>
+          <p>Press the <strong>F</strong> key for <strong>Positive</strong> emotions and the <strong>J</strong> key for <strong>Negative</strong> emotions.</p>
+          <p>Press any key to begin.</p>
+        `,
+        post_trial_gap: 2000
+      };
+      timeline.push(instructions);
+
+      /* define trial stimuli array for timeline variables */
+      var test_stimuli = [
+        { stimulus: "Happy", correct_response: 'f', category: "Positive" },
+        { stimulus: "Sad", correct_response: 'j', category: "Negative" },
+        { stimulus: "Joy", correct_response: 'f', category: "Positive" },
+        { stimulus: "Anger", correct_response: 'j', category: "Negative" },
+        // Add more stimuli as needed
+      ];
+
+      /* define IAT trials */
+      var iat_trial = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: jsPsych.timelineVariable('stimulus'),
+        choices: ['f', 'j'],
+        data: {
+          category: jsPsych.timelineVariable('category')
+        },
+        on_finish: function(data) {
+          data.correct = jsPsych.pluginAPI.compareKeys(data.key_press, jsPsych.timelineVariable('correct_response'));
+        }
+      };
+
+      /* define IAT procedure */
+      var iat_procedure = {
+        timeline: [iat_trial],
+        timeline_variables: test_stimuli,
+        repetitions: 4, // Each stimulus will be shown 4 times
+        randomize_order: true
+      };
+      timeline.push(iat_procedure);
+
+      /* define debrief */
+      var debrief = {
+        type: jsPsychHtmlKeyboardResponse,
+        stimulus: "Thank you for completing the IAT. Press any key to end the experiment."
+      };
+      timeline.push(debrief);
+
+      /* start the experiment */
+      jsPsych.run(timeline);
+    </script>
+</html>
